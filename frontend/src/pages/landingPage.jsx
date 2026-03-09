@@ -22,7 +22,7 @@ export default function LandingPage(){
                     <h1><span style={{color: "#ff9839"}}>Connect</span> with your loved Ones</h1>
                     <p>Cover a distance by Zeta: Video Call</p>
                     <div role="button">
-                        <Link to="/home">Get Started</Link>
+                        <Link to="/auth">Get Started</Link>
                     </div>
                 </div>
                 <div>
