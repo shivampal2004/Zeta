@@ -1,66 +1,88 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import Stack from '@mui/material/Stack';
-import AppTheme from '../shared-theme/AppTheme';
-import ColorModeSelect from '../shared-theme/ColorModeSelect';
-import SignInCard from './components/SignInCard';
-import Content from './components/Content';
+import { useContext, useState } from 'react';
+import { Button, TextField, Box, Typography, Snackbar, Paper } from '@mui/material';
+import { AuthContext } from '../contexts/AuthContext';
 
-export default function Authentication(props) {
-  return (
-    <AppTheme {...props}>
-      <CssBaseline enableColorScheme />
-      <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
-      <Stack
-        direction="column"
-        component="main"
-        sx={[
-          {
-            justifyContent: 'center',
-            height: 'calc((1 - var(--template-frame-height, 0)) * 100%)',
-            marginTop: 'max(40px - var(--template-frame-height, 0px), 0px)',
-            minHeight: '100%',
-          },
-          (theme) => ({
-            '&::before': {
-              content: '""',
-              display: 'block',
-              position: 'absolute',
-              zIndex: -1,
-              inset: 0,
-              backgroundImage:
-                'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
-              backgroundRepeat: 'no-repeat',
-              ...theme.applyStyles('dark', {
-                backgroundImage:
-                  'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
-              }),
-            },
-          }),
-        ]}
-      >
-        <Stack
-          direction={{ xs: 'column-reverse', md: 'row' }}
-          sx={{
-            justifyContent: 'center',
-            gap: { xs: 6, sm: 12 },
-            p: 2,
-            mx: 'auto',
-          }}
-        >
-          <Stack
-            direction={{ xs: 'column-reverse', md: 'row' }}
-            sx={{
-              justifyContent: 'center',
-              gap: { xs: 6, sm: 12 },
-              p: { xs: 2, sm: 4 },
-              m: 'auto',
-            }}
-          >
-            <Content />
-            <SignInCard />
-          </Stack>
-        </Stack>
-      </Stack>
-    </AppTheme>
-  );
+export default function Authentication() {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+    const [error, setError] = useState();
+    const [message, setMessage] = useState();
+    const [formState, setFormState] = useState(0);
+    const [open, setOpen] = useState(false);
+    const { handleRegister, handleLogin } = useContext(AuthContext);
+
+    const handleAuth = async () => {
+        try {
+            if (formState === 0) {
+                let result = await handleLogin(username, password);
+            }
+            if (formState === 1) {
+                let result = await handleRegister(name, username, password);
+                console.log(result);
+                setUsername("");
+                setMessage(result);
+                setOpen(true);
+                setError("")
+                setFormState(0)
+                setPassword("")
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || "An Error occured");
+        }
+    }
+
+    return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+            <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
+                <Typography variant="h5" textAlign="center" mb={3}>
+                    {formState === 1 ? "Create an Account" : "Welcome Back"}
+                </Typography>
+
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                    <Button 
+                        fullWidth 
+                        variant={formState === 0 ? "contained" : "outlined"} 
+                        onClick={() => { setFormState(0); setError(""); }}
+                    >
+                        Sign In
+                    </Button>
+                    <Button 
+                        fullWidth 
+                        variant={formState === 1 ? "contained" : "outlined"} 
+                        onClick={() => { setFormState(1); setError(""); }}
+                    >
+                        Sign Up
+                    </Button>
+                </Box>
+
+                <Box component="form" noValidate>
+                    {formState === 1 && (
+                        <TextField margin="normal" required fullWidth label="Full Name" value={name} autoFocus onChange={(e) => setName(e.target.value)} />
+                    )}
+                    
+                    <TextField margin="normal" required fullWidth label="Username" value={username} autoFocus={formState === 0} onChange={(e) => setUsername(e.target.value)} />
+                    
+                    <TextField margin="normal" required fullWidth label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+
+                    {error && (
+                        <Typography color="error" variant="body2" sx={{ mt: 1, minHeight: 20 }}>
+                            {error}
+                        </Typography>
+                    )}
+
+                    <Button fullWidth variant="contained" sx={{ mt: 3 }} onClick={handleAuth}>
+                        {formState === 1 ? "Register" : "Login"}
+                    </Button>
+                </Box>
+            </Paper>
+
+            <Snackbar 
+                open={open} 
+                autoHideDuration={4000} 
+                onClose={() => setOpen(false)} 
+                message={message} 
+            />
+        </Box>
+    );
 }
